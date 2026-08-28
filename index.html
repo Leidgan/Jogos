@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Chaveiro NFC - SNES Mobile</title>
-    <!-- Carrega o emulador de SNES em WebAssembly -->
-    <script src="https://cloudflare.com"></script>
+    <!-- CORREÇÃO DO LINK DA BIBLIOTECA (Usando unpkg oficial) -->
+    <script src="https://unpkg.com/nostalgist"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #1a1a1a; color: white; font-family: sans-serif; text-align: center; overflow: hidden; height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+        body { background: #1a1a1a; color: white; font-family: sans-serif; text-align: center; height: 100vh; display: flex; flex-direction: column; justify-content: center; }
         .menu { padding: 20px; z-index: 10; }
         select { padding: 15px; font-size: 18px; width: 80%; max-width: 300px; background: #333; color: white; border: 2px solid #555; border-radius: 8px; }
         #canvas-container { flex-grow: 1; width: 100%; height: 100%; display: none; position: relative; }
@@ -21,7 +21,7 @@
         <h1>NFC SNES Emulator</h1>
         <p style="margin: 15px 0; color: #aaa;">Aproxime o chaveiro ou selecione o jogo:</p>
         
-        <!-- Altere os values para os nomes EXATOS dos seus arquivos .smc ou .sfc -->
+        <!-- Altere os values para os nomes EXATOS dos seus arquivos no GitHub -->
         <select id="game-selector">
             <option value="">-- Escolha o Jogo --</option>
             <option value="supermarioworld.smc">Super Mario World</option>
@@ -33,36 +33,34 @@
     <script>
         let emuInstance = null;
 
-        // Função para carregar o jogo automaticamente
         async function launchGame(romName) {
             if (!romName) return;
             
-            // Esconde o menu de seleção
             document.getElementById('menu-area').style.display = 'none';
             document.getElementById('canvas-container').style.display = 'block';
 
+            // CORREÇÃO DE ROTA: Força o navegador a buscar a ROM na raiz exata do seu site
+            const baseProg = window.location.origin + window.location.pathname;
+            const absoluteRomUrl = baseProg.endsWith('/') ? baseProg + romName : baseProg + '/' + romName;
+
             try {
-                // Inicia o emulador Snes9x usando a biblioteca Nostalgist
+                // Inicia o emulador de SNES de forma limpa usando a URL absoluta
                 emuInstance = await Nostalgist.snes({
-                    rom: romName,
-                    element: '#canvas-container',
-                    // Ativa os botões na tela para celular automaticamente
-                    onLaunch: () => {
-                        console.log('Jogo carregado com sucesso!');
-                    }
+                    rom: absoluteRomUrl,
+                    element: '#canvas-container'
                 });
             } catch (error) {
-                alert('Erro ao carregar a ROM. Verifique se o nome do arquivo está correto no GitHub.');
+                console.error(error);
+                alert('Erro ao carregar a ROM.\n1. Verifique se o arquivo está na raiz do repositório.\n2. Verifique se o nome digitado bate com as maiúsculas/minúsculas do arquivo original.');
                 location.reload();
             }
         }
 
-        // Evento do menu de seleção manual
         document.getElementById('game-selector').addEventListener('change', function() {
             launchGame(this.value);
         });
 
-        // TRUQUE DO NFC: Se você passar o nome do jogo na URL (ex: ?jogo=top_gear.smc), ele abre direto
+        // Leitura do parâmetro do chaveiro NFC (?jogo=nome.smc)
         const urlParams = new URLSearchParams(window.location.search);
         const jogoViaNFC = urlParams.get('jogo');
         if (jogoViaNFC) {
@@ -71,3 +69,4 @@
     </script>
 </body>
 </html>
+
