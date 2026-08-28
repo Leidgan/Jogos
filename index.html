@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Chaveiro NFC - SNES Mobile</title>
-    <!-- CORREÇÃO DO LINK DA BIBLIOTECA (Usando unpkg oficial) -->
-    <script src="https://unpkg.com/nostalgist"></script>
+    <script src="https://unpkg.com"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #1a1a1a; color: white; font-family: sans-serif; text-align: center; height: 100vh; display: flex; flex-direction: column; justify-content: center; }
@@ -21,7 +20,7 @@
         <h1>NFC SNES Emulator</h1>
         <p style="margin: 15px 0; color: #aaa;">Aproxime o chaveiro ou selecione o jogo:</p>
         
-        <!-- Altere os values para os nomes EXATOS dos seus arquivos no GitHub -->
+        <!-- O value DEVE ser EXATAMENTE igual ao nome do arquivo no seu GitHub -->
         <select id="game-selector">
             <option value="">-- Escolha o Jogo --</option>
             <option value="supermario.smc">Super Mario World</option>
@@ -31,6 +30,10 @@
     <div id="canvas-container"></div>
 
     <script>
+        // CONFIGURAÇÃO OBRIGATÓRIA: Mude para o seu usuário e o nome do seu repositório
+        const USUARIO_GITHUB = 'Leidgan';
+        const REPOSITORIO_GITHUB = 'Jogos';
+
         let emuInstance = null;
 
         async function launchGame(romName) {
@@ -39,19 +42,17 @@
             document.getElementById('menu-area').style.display = 'none';
             document.getElementById('canvas-container').style.display = 'block';
 
-            // CORREÇÃO DE ROTA: Força o navegador a buscar a ROM na raiz exata do seu site
-            const baseProg = window.location.origin + window.location.pathname;
-            const absoluteRomUrl = baseProg.endsWith('/') ? baseProg + romName : baseProg + '/' + romName;
+            // CRIA UM LINK DIRETO E COLOQUE VIA CDN (Evita erros de carregamento e cache do navegador)
+            const absoluteRomUrl = `https://jsdelivr.net{USUARIO_GITHUB}/${REPOSITORIO_GITHUB}@main/${romName}`;
 
             try {
-                // Inicia o emulador de SNES de forma limpa usando a URL absoluta
                 emuInstance = await Nostalgist.snes({
                     rom: absoluteRomUrl,
                     element: '#canvas-container'
                 });
             } catch (error) {
                 console.error(error);
-                alert('Erro ao carregar a ROM.\n1. Verifique se o arquivo está na raiz do repositório.\n2. Verifique se o nome digitado bate com as maiúsculas/minúsculas do arquivo original.');
+                alert(`ERRO DE LEITURA!\n\nO emulador tentou buscar o arquivo:\n"${romName}"\n\nVerifique se o nome no código está IGUAL (letras maiúsculas/minúsculas) ao arquivo do GitHub.`);
                 location.reload();
             }
         }
@@ -60,7 +61,6 @@
             launchGame(this.value);
         });
 
-        // Leitura do parâmetro do chaveiro NFC (?jogo=nome.smc)
         const urlParams = new URLSearchParams(window.location.search);
         const jogoViaNFC = urlParams.get('jogo');
         if (jogoViaNFC) {
@@ -69,4 +69,3 @@
     </script>
 </body>
 </html>
-
